@@ -170,13 +170,13 @@ def _parse_seabird(lines: list, ftype: str) -> dict:  # noqa: C901, PLR0912, PLR
             else:
                 msg = "Latitude not recognized."
                 raise ValueError(msg)
-        if "NMEA UTC (Time)" in line:
+        if "System UpLoad Time" in line: # Marisa Viola : changed from NMEA to system time since my file does not include nmea data
             time = line.split("=")[-1].strip()
             # Should use some fuzzy datetime parser to make this more robust.
             time = datetime.datetime.strptime(
                 time,
                 "%b %d %Y %H:%M:%S",
-            ).astimezone(datetime.UTC)
+            ) # MV: removed .astimezone(datetime.UTC)
 
         # cnv file header ends with *END* while
         if ftype == "cnv":
@@ -236,7 +236,7 @@ def from_bl(fname: str | Path) -> pd.DataFrame:
         skiprows=2,
         parse_dates=[1],
         index_col=0,
-        names=["bottle_number", "time", "startscan", "endscan"],
+        names=["bottle_number", "time_local", "startscan", "endscan"],
     )
     cast._metadata = {  # noqa: SLF001
         "time_of_reset": pd.to_datetime(
@@ -452,25 +452,25 @@ def from_cnv(fname: str | Path) -> pd.DataFrame:
         # If multiple keys present then keep the first one.
         prkey = prkey[0]
 
-    cast = cast.set_index(prkey, drop=True)
-    cast.index.name = "Pressure [dbar]"
-    if prkey == "depSM":
-        lat = metadata.get("lat", None)
-        if lat is not None:
-            cast.index = gsw.p_from_z(
-                cast.index,
-                lat,
-                geo_strf_dyn_height=0,
-                sea_surface_geopotential=0,
-            )
-        else:
-            msg = (
-                "Missing latitude information. Cannot compute pressure! "
-                f"Your index is {prkey}, please compute pressure manually "
-                "with `gsw.p_from_z` and overwrite your index."
-            )
-            warnings.war(msg)
-            cast.index.name = prkey
+    # cast = cast.set_index(prkey, drop=True)
+    # cast.index.name = "Pressure [dbar]"
+    # if prkey == "depSM":
+    #     lat = metadata.get("lat", None)
+    #     if lat is not None:
+    #         cast.index = gsw.p_from_z(
+    #             cast.index,
+    #             lat,
+    #             geo_strf_dyn_height=0,
+    #             sea_surface_geopotential=0,
+    #         )
+    #     else:
+    #         msg = (
+    #             "Missing latitude information. Cannot compute pressure! "
+    #             f"Your index is {prkey}, please compute pressure manually "
+    #             "with `gsw.p_from_z` and overwrite your index."
+    #         )
+    #         warnings.war(msg)
+    #         cast.index.name = prkey
 
     if "name" not in metadata:
         name = _basename(fname)[1]
