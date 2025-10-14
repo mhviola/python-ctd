@@ -39,7 +39,12 @@ def remove_up_to(df: cast, idx: int) -> cast:
 @register_dataframe_method
 def split(df: cast) -> cast:
     """Return a tuple with down/up-cast."""
-    idx = df.index.argmax() + 1
+    # idx = df.index.argmax() + 1
+    # down = df.iloc[:idx]
+    # # Reverse index to orient it as a CTD cast.
+    # up = df.iloc[idx:][::-1]
+    # return down, up
+    idx = df.depSM.argmax() + 1 # MV: changed because I stopped indexing from depth
     down = df.iloc[:idx]
     # Reverse index to orient it as a CTD cast.
     up = df.iloc[idx:][::-1]
