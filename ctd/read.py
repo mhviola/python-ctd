@@ -236,7 +236,7 @@ def from_bl(fname: str | Path) -> pd.DataFrame:
         skiprows=2,
         parse_dates=[1],
         index_col=0,
-        names=["bottle_number", "time_local", "startscan", "endscan"],
+        names=["bottle_number", "time_local", "startscan", "endscan"], # MV: changed time to time_local to fit variable names
     )
     cast._metadata = {  # noqa: SLF001
         "time_of_reset": pd.to_datetime(
@@ -451,27 +451,27 @@ def from_cnv(fname: str | Path) -> pd.DataFrame:
     if len(prkey) > 1:
         # If multiple keys present then keep the first one.
         prkey = prkey[0]
-
-    # cast = cast.set_index(prkey, drop=True)
-    # cast.index.name = "Pressure [dbar]"
-    # if prkey == "depSM":
-    #     lat = metadata.get("lat", None)
-    #     if lat is not None:
-    #         cast.index = gsw.p_from_z(
-    #             cast.index,
-    #             lat,
-    #             geo_strf_dyn_height=0,
-    #             sea_surface_geopotential=0,
-    #         )
-    #     else:
-    #         msg = (
-    #             "Missing latitude information. Cannot compute pressure! "
-    #             f"Your index is {prkey}, please compute pressure manually "
-    #             "with `gsw.p_from_z` and overwrite your index."
-    #         )
-    #         warnings.war(msg)
-    #         cast.index.name = prkey
-
+# edit
+    cast = cast.set_index(prkey, drop=True)
+    cast.index.name = "Pressure [dbar]"
+    if prkey == "depSM":
+        lat = metadata.get("lat", None)
+        if lat is not None:
+            cast.index = gsw.p_from_z(
+                cast.index,
+                lat,
+                geo_strf_dyn_height=0,
+                sea_surface_geopotential=0,
+            )
+        else:
+            msg = (
+                "Missing latitude information. Cannot compute pressure! "
+                f"Your index is {prkey}, please compute pressure manually "
+                "with `gsw.p_from_z` and overwrite your index."
+            )
+            warnings.war(msg)
+            cast.index.name = prkey
+#edit
     if "name" not in metadata:
         name = _basename(fname)[1]
         metadata["name"] = str(name)
